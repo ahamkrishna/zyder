@@ -12,7 +12,7 @@ function LandingPage() {
             {["One-Stop Solution", "for all your", "Last Mile Needs"].map((item, index) => {
               return (
                 <div className="masker" key={index}>
-                  <h1 className='uppercase text-[7.5vw] leading-[7.5vw] tracking-tighter font-sans font-semibold'>{item}</h1>
+                  <h1 className='uppercase text-[7vw] leading-[7vw] tracking-tighter font-sans font-bold'>{item}</h1>
                 </div>
               );
             })}
