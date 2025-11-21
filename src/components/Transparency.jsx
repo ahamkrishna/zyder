@@ -3,25 +3,24 @@ import rider from '../assets/riderImage.png';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-gsap.registerPlugin(ScrollTrigger);
-
-function Transperancy({ animate = true }) {
+function Transparency({ animate = true }) {
   const [percent, setPercent] = useState(0);
   const riderRef = useRef(null);
   const boxRef = useRef(null);
   const emptyRef = useRef(null);
 
   useEffect(() => {
-        // Animate percent from 0 to 100
-        gsap.to({}, {
-          duration: 2,
-          onUpdate: function() {
-            setPercent(Math.floor(this.progress() * 100));
-          },
-          onComplete: function() {
-            setPercent(100);
-          }
-        });
+    gsap.registerPlugin(ScrollTrigger);
+    // Animate percent from 0 to 100
+    gsap.to({}, {
+      duration: 2,
+      onUpdate: function() {
+        setPercent(Math.floor(this.progress() * 100));
+      },
+      onComplete: function() {
+        setPercent(100);
+      }
+    });
     const rider = riderRef.current;
     const box = boxRef.current;
     const empty = emptyRef.current;
@@ -96,12 +95,12 @@ function Transperancy({ animate = true }) {
                 </svg>
             </div>
       </div>
-      <div className="transperancy-text flex flex-col justify-center items-center mt-0 font-sans font-semibold text-white text-[4vw]">
+      <div className="transparency-text flex flex-col justify-center items-center mt-0 font-sans font-semibold text-white text-[4vw]">
         <span className="text-[5vw] font-bold">{percent}%</span>
-        <span className="text-[2vw]">COD Transperancy</span>
+        <span className="text-[2vw]">COD Transparency</span>
       </div>
     </div>
   )
 }
 
-export default Transperancy
+export default Transparency;

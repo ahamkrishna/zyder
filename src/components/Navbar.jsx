@@ -11,8 +11,8 @@ function Navbar() {
         <svg width="150" height="40" viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg">
         <defs>
             <linearGradient id="zyderNavGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#7C3AED"/>
-            <stop offset="100%" stop-color="#0EA5E9"/>
+            <stop offset="0%" stopColor="#7C3AED"/>
+            <stop offset="100%" stopColor="#0EA5E9"/>
             </linearGradient>
         </defs>
 
@@ -24,10 +24,10 @@ function Navbar() {
             x="0"
             y="55"
             fill="url(#zyderNavGradient)"
-            font-size="60"
-            font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-            font-weight="600"
-            letter-spacing="1"
+            fontSize="60"
+            fontFamily="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+            fontWeight="600"
+            letterSpacing="1"
         >
             Zyder
         </text>
@@ -43,3 +43,4 @@ function Navbar() {
 }
 
 export default Navbar
+
