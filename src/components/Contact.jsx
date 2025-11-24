@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {  useRef, useState } from 'react';
 
-const Card = ({ icon, title, description, contactInfo, responseTime, type }) => {
+const Card = ({ icon, title, description, contactInfo, responseTime }) => {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = () => {
@@ -73,6 +73,7 @@ const Contact = () => {
                         type="phone"
                     />
                 </div>
+                
             </div>
         </div>
     );

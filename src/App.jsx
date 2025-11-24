@@ -10,6 +10,7 @@ import DeliveryAgentManagement from './components/DeliveryAgentManagement.jsx'
 import RealTimeDeliveryAnalytics from './components/RealTimeDeliveryAnalytics.jsx'
 import Testimonials from './components/Testimonials.jsx'
 import Contact from './components/Contact.jsx'
+import About from './components/About.jsx'
 
 function App() {
   return (
@@ -25,6 +26,8 @@ function App() {
       <RealTimeDeliveryAnalytics />
       <Testimonials />
       <Contact />
+      {/* <Footer /> */}
+      <About />
 
     </div>
   )

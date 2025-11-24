@@ -1,52 +1,108 @@
+import React, { useRef, Suspense } from 'react';
+import { motion } from 'framer-motion';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { OrbitControls, Box, Plane } from '@react-three/drei';
+import * as THREE from 'three';
 
-import React, { useEffect, useState } from 'react';
-
-function CodManagement() {
-  const [showText, setShowText] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowText(true), 400);
-    return () => clearTimeout(timer);
-  }, []);
+function Package({ position, color }) {
+  const ref = useRef();
+  useFrame(() => {
+    ref.current.position.x -= 0.02;
+    if (ref.current.position.x < -6) {
+        ref.current.position.x = 6;
+    }
+  });
 
   return (
-    <div className="w-full h-full flex justify-center items-center bg-gradient-to-br from-green-900 via-teal-800 to-blue-700 py-8">
-      <div className="cod-management relative rounded-3xl shadow-2xl p-10 bg-white/10 backdrop-blur-lg flex flex-col items-center animate-fade-in" style={{ minWidth: '350px', minHeight: '250px' }}>
-        <span className="absolute top-4 right-4 animate-bounce">
-          {/* Premium icon: animated package/box */}
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="7" width="18" height="13" rx="2" fill="#38bdf8" />
-            <rect x="7" y="3" width="10" height="4" rx="1" fill="#34d399" />
-            <path d="M3 7l9 6 9-6" stroke="#fff" strokeWidth="2" />
-          </svg>
-        </span>
-        <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-green-400 via-blue-400 to-teal-500 flex items-center justify-center mb-6 animate-spin-slow shadow-lg">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="7" width="18" height="13" rx="2" />
-            <rect x="7" y="3" width="10" height="4" rx="1" />
-          </svg>
-        </div>
-        <h2 className={`text-4xl font-extrabold text-white drop-shadow-lg transition-all duration-700 ${showText ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>Cod Management</h2>
-        <p className={`mt-4 text-lg text-white/80 text-center transition-all duration-700 ${showText ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          Effortlessly manage your Cash on Delivery operations with advanced tracking, automation, and analytics for every shipment.
-        </p>
-        <style>{`
-          @keyframes fade-in {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-          }
-          .animate-fade-in {
-            animation: fade-in 0.7s ease;
-          }
-          @keyframes spin-slow {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-          .animate-spin-slow {
-            animation: spin-slow 2.5s linear infinite;
-          }
-        `}</style>
-      </div>
+    <mesh ref={ref} position={position}>
+      <Box args={[1, 0.6, 0.8]}>
+        <meshStandardMaterial color={color} roughness={0.6} metalness={0.2} />
+      </Box>
+    </mesh>
+  );
+}
+
+function ConveyorBelt() {
+  return (
+    <Plane args={[14, 2]} rotation-x={-Math.PI / 2} position-y={-0.5}>
+      <meshStandardMaterial color="#333" />
+    </Plane>
+  );
+}
+
+function Scanner() {
+    const lightRef = useRef();
+    useFrame((state) => {
+        lightRef.current.position.z = Math.sin(state.clock.getElapsedTime() * 2) * 4;
+    });
+  return (
+    <group position={[0, 1.5, 0]}>
+      <Box args={[0.2, 0.2, 8]}>
+        <meshStandardMaterial color="black" />
+      </Box>
+      <spotLight ref={lightRef} position={[0, -0.5, 0]} angle={0.2} penumbra={0.5} intensity={5} color="red" distance={5} />
+    </group>
+  );
+}
+
+
+function CodManagement() {
+  const containerVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.8,
+        ease: 'easeOut',
+        staggerChildren: 0.3,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+  };
+  
+  const packages = [
+    { position: [-4, -0.2, 0], color: '#A0522D' },
+    { position: [-1, -0.2, 0], color: '#8B4513' },
+    { position: [2, -0.2, 0], color: '#D2691E' },
+    { position: [5, -0.2, 0], color: '#A0522D' },
+
+  ];
+
+  return (
+    <div className="w-full h-screen flex justify-center items-center bg-zinc-900 overflow-hidden relative">
+      <Canvas camera={{ position: [0, 2, 8], fov: 50 }} style={{ position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
+        <ambientLight intensity={0.5} />
+        <pointLight position={[10, 10, 10]} intensity={1} />
+        <Suspense fallback={null}>
+          <ConveyorBelt />
+          {packages.map((pkg, i) => (
+             <Package key={i} {...pkg} />
+          ))}
+          <Scanner />
+        </Suspense>
+        <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 2} />
+      </Canvas>
+
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.5 }}
+        className="relative z-10 flex flex-col items-center text-center p-10"
+      >
+        <motion.h2 variants={itemVariants} className="text-6xl font-extrabold text-white" style={{textShadow: '0 0 20px #38bdf8'}}>
+          COD Management
+        </motion.h2>
+
+        <motion.p variants={itemVariants} className="mt-6 text-xl text-white/80 max-w-lg">
+          Effortlessly manage Cash on Delivery with advanced tracking, automation, and analytics for every shipment.
+        </motion.p>
+      </motion.div>
     </div>
   );
 }
