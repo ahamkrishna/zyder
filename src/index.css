@@ -92,3 +92,58 @@ body {
     animation: fadeInDelay 1s ease-in-out 0.5s;
   }
 }
+
+/* --- Custom CSS for The Dispatch Nexus theme --- */
+.nexus-bg {
+  background: linear-gradient(135deg, rgba(10, 20, 40, 0.9) 0%, rgba(20, 30, 60, 0.95) 100%);
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.nexus-map-overlay {
+  /* This will be replaced by react-leaflet map, keeping for visual reference if needed */
+  background: transparent; 
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.panel-glass {
+  background: rgba(10, 20, 40, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(70, 90, 150, 0.3);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+}
+.accent-blue { color: #5B8FF9; } /* A clean, techy blue */
+.accent-green { color: #3DD1A7; } /* Active/positive */
+.accent-orange { color: #FFC107; } /* Warning/pending */
+.accent-red { color: #FF4136; } /* Critical/alert */
+
+.scroll-snap-x {
+    scroll-snap-type: x mandatory;
+}
+.scroll-snap-x > * {
+    scroll-snap-align: center;
+}
+
+/* Custom scrollbar for fleet console */
+.fleet-console-scrollbar::-webkit-scrollbar {
+    height: 6px;
+}
+.fleet-console-scrollbar::-webkit-scrollbar-track {
+    background: rgba(40, 60, 100, 0.3);
+    border-radius: 3px;
+}
+.fleet-console-scrollbar::-webkit-scrollbar-thumb {
+    background: #5B8FF9;
+    border-radius: 3px;
+}
+
+/* leaflet custom styles */
+.leaflet-container {
+    background-color: transparent !important;
+}
+
+.leaflet-tile-pane {
+    filter: grayscale(100%) brightness(0.6) invert(1) opacity(0.8); /* Darken and desaturate map */
+}

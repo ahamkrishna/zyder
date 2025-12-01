@@ -1,110 +1,155 @@
-import React, { useRef, Suspense } from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Box, Plane } from '@react-three/drei';
+import { Icosahedron, Torus, Cone } from '@react-three/drei';
+import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
-function Package({ position, color }) {
+// A single rotating ring for the sanctum
+const SanctumRing = ({ position, rotationSpeed, args, color }) => {
   const ref = useRef();
-  useFrame(() => {
-    ref.current.position.x -= 0.02;
-    if (ref.current.position.x < -6) {
-        ref.current.position.x = 6;
-    }
+  useFrame((state, delta) => {
+    ref.current.rotation.z += delta * rotationSpeed;
   });
 
   return (
-    <mesh ref={ref} position={position}>
-      <Box args={[1, 0.6, 0.8]}>
-        <meshStandardMaterial color={color} roughness={0.6} metalness={0.2} />
-      </Box>
-    </mesh>
+    <Torus ref={ref} position={position} args={args} rotation={[Math.PI / 2, 0, 0]}>
+      <meshStandardMaterial color={color} roughness={0.1} metalness={0.9} />
+    </Torus>
   );
-}
+};
 
-function ConveyorBelt() {
-  return (
-    <Plane args={[14, 2]} rotation-x={-Math.PI / 2} position-y={-0.5}>
-      <meshStandardMaterial color="#333" />
-    </Plane>
+// The central pulsating core
+const EnergyCore = () => {
+  const ref = useRef();
+  const lightRef = useRef();
+
+  const uniforms = useMemo(
+    () => ({
+      u_time: { value: 0.0 },
+      u_intensity: { value: 0.7 },
+    }),
+    []
   );
-}
 
-function Scanner() {
-    const lightRef = useRef();
-    useFrame((state) => {
-        lightRef.current.position.z = Math.sin(state.clock.getElapsedTime() * 2) * 4;
-    });
+  useFrame((state) => {
+    const { clock } = state;
+    ref.current.material.uniforms.u_time.value = clock.getElapsedTime();
+    const scale = 1 + Math.sin(clock.getElapsedTime() * 2) * 0.1; // Pulsating effect
+    ref.current.scale.set(scale, scale, scale);
+    lightRef.current.intensity = 2 + Math.sin(clock.getElapsedTime() * 2) * 1.5; // Pulsating light
+  });
+
   return (
-    <group position={[0, 1.5, 0]}>
-      <Box args={[0.2, 0.2, 8]}>
-        <meshStandardMaterial color="black" />
-      </Box>
-      <spotLight ref={lightRef} position={[0, -0.5, 0]} angle={0.2} penumbra={0.5} intensity={5} color="red" distance={5} />
+    <group>
+      <pointLight ref={lightRef} color="#7C3AED" intensity={2} distance={10} />
+      <Icosahedron ref={ref} args={[0.8, 5]}>
+        <shaderMaterial
+          fragmentShader={`
+            varying vec3 v_normal;
+            uniform float u_time;
+            uniform float u_intensity;
+
+            // 2D Random function
+            float random(vec2 st) {
+                return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+            }
+
+            // 2D Noise function
+            float noise(vec2 st) {
+                vec2 i = floor(st);
+                vec2 f = fract(st);
+
+                float a = random(i);
+                float b = random(i + vec2(1.0, 0.0));
+                float c = random(i + vec2(0.0, 1.0));
+                float d = random(i + vec2(1.0, 1.0));
+
+                vec2 u = f * f * (3.0 - 2.0 * f);
+                return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.y * u.x;
+            }
+            
+            void main() {
+              float noise_val = noise(v_normal.xy * 3.0 + u_time * 0.2);
+              vec3 color = mix(vec3(0.5, 0.2, 0.9), vec3(0.0, 0.8, 1.0), v_normal.z);
+              float intensity = 1.0 - dot(v_normal, vec3(0.0, 0.0, 1.0));
+              vec3 final_color = color * (intensity * u_intensity + noise_val);
+              gl_FragColor = vec4(final_color, 1.0);
+            }
+          `}
+          vertexShader={`
+            varying vec3 v_normal;
+            void main() {
+              v_normal = normal;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `}
+          uniforms={uniforms}
+          side={THREE.DoubleSide}
+        />
+      </Icosahedron>
     </group>
   );
-}
+};
 
+// The main 3D scene component
+const SanctumScene = () => {
+  const groupRef = useRef();
 
-function CodManagement() {
-  const containerVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.8,
-        ease: 'easeOut',
-        staggerChildren: 0.3,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
-  };
-  
-  const packages = [
-    { position: [-4, -0.2, 0], color: '#A0522D' },
-    { position: [-1, -0.2, 0], color: '#8B4513' },
-    { position: [2, -0.2, 0], color: '#D2691E' },
-    { position: [5, -0.2, 0], color: '#A0522D' },
-
-  ];
+  useFrame((state) => {
+    // Gentle rotation of the entire scene
+    groupRef.current.rotation.y += 0.001;
+    // Cinematic camera movement
+    state.camera.position.lerp(new THREE.Vector3(0, 2, 8 + Math.sin(state.clock.getElapsedTime() * 0.2)), 0.01);
+    state.camera.lookAt(0, 0, 0);
+  });
 
   return (
-    <div className="w-full h-screen flex justify-center items-center bg-zinc-900 overflow-hidden relative">
-      <Canvas camera={{ position: [0, 2, 8], fov: 50 }} style={{ position: 'absolute', top: 0, left: 0, zIndex: 0 }}>
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} intensity={1} />
-        <Suspense fallback={null}>
-          <ConveyorBelt />
-          {packages.map((pkg, i) => (
-             <Package key={i} {...pkg} />
-          ))}
-          <Scanner />
-        </Suspense>
-        <OrbitControls enableZoom={false} enablePan={false} minPolarAngle={Math.PI / 4} maxPolarAngle={Math.PI / 2} />
+    <group ref={groupRef}>
+      <ambientLight intensity={0.1} color="#ffffff" />
+      <EnergyCore />
+      {/* Rotating rings of the sanctum structure */}
+      <SanctumRing position={[0, 0, 0]} rotationSpeed={0.1} args={[3, 0.1, 64]} color="#0EA5E9" />
+      <SanctumRing position={[0, 0, 0]} rotationSpeed={-0.08} args={[4, 0.05, 64]} color="#7C3AED" />
+      <SanctumRing position={[0, 0, 0]} rotationSpeed={0.06} args={[5, 0.02, 64]} color="#ffffff" />
+      {/* Static outer structure */}
+      {Array.from({ length: 12 }).map((_, i) => (
+        <Cone
+          key={i}
+          position={[
+            Math.sin((i / 12) * Math.PI * 2) * 5.5,
+            1.5,
+            Math.cos((i / 12) * Math.PI * 2) * 5.5,
+          ]}
+          rotation={[Math.PI/2, 0, (i / 12) * Math.PI * 2]}
+          args={[0.1, 3, 4]}
+        >
+          <meshStandardMaterial color="#4A5568" metalness={0.9} roughness={0.2} />
+        </Cone>
+      ))}
+    </group>
+  );
+};
+
+
+const CodManagement = () => {
+  return (
+    <div className="relative w-full h-screen bg-black">
+      <Canvas camera={{ position: [0, 2, 10], fov: 60 }}>
+        <SanctumScene />
+        <EffectComposer>
+          <Bloom luminanceThreshold={0.1} intensity={0.8} mipmapBlur />
+        </EffectComposer>
       </Canvas>
-
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.5 }}
-        className="relative z-10 flex flex-col items-center text-center p-10"
-      >
-        <motion.h2 variants={itemVariants} className="text-6xl font-extrabold text-white" style={{textShadow: '0 0 20px #38bdf8'}}>
+      <div className="absolute top-0 left-0 w-full h-full flex flex-col justify-center items-center pointer-events-none text-center p-8">
+        <h1 className="text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#7C3AED] to-[#0EA5E9] mb-4" style={{ textShadow: '0 0 15px rgba(14, 165, 233, 0.4), 0 0 10px rgba(124, 58, 237, 0.4)' }}>
           COD Management
-        </motion.h2>
-
-        <motion.p variants={itemVariants} className="mt-6 text-xl text-white/80 max-w-lg">
-          Effortlessly manage Cash on Delivery with advanced tracking, automation, and analytics for every shipment.
-        </motion.p>
-      </motion.div>
+        </h1>
+        <p className="text-lg md:text-xl text-gray-300 max-w-2xl">
+          Secure, streamlined, and fully automated. Our platform provides unparalleled security and efficiency for all your Cash On Delivery transactions, safeguarded by a state-of-the-art digital infrastructure.
+        </p>
+      </div>
     </div>
   );
-}
+};
 
 export default CodManagement;

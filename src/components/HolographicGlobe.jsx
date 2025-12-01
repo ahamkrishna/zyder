@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import * as THREE from 'three';
 import gsap from 'gsap';
+import zyderLogo from '../assets/zyderLogo.jpg';
 
 const HolographicGlobe = forwardRef((props, ref) => {
   const mountRef = useRef(null);
@@ -63,6 +64,40 @@ const HolographicGlobe = forwardRef((props, ref) => {
 
     const ambientLight = new THREE.AmbientLight(0x404040);
     scene.add(ambientLight);
+
+    const img = new Image();
+    img.src = zyderLogo;
+    img.crossOrigin = "Anonymous";
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        context.drawImage(img, 0, 0);
+        const data = context.getImageData(0, 0, img.width, img.height).data;
+        
+        let r = 0, g = 0, b = 0;
+        let count = 0;
+        for (let i = 0; i < data.length; i += 4) {
+            r += data[i];
+            g += data[i+1];
+            b += data[i+2];
+            count++;
+        }
+
+        r = Math.floor(r / count);
+        g = Math.floor(g / count);
+        b = Math.floor(b / count);
+
+        const dominantColor = new THREE.Color(r / 255, g / 255, b / 255);
+        material.color.set(dominantColor);
+
+        // Create a secondary light with a color from the palette
+        const secondColor = new THREE.Color(data[0] / 255, data[1] / 255, data[2] / 255);
+        const pointLight2 = new THREE.PointLight(secondColor, 1, 100);
+        pointLight2.position.set(-10, -10, -10);
+        scene.add(pointLight2);
+    };
 
     camera.position.z = 5;
 

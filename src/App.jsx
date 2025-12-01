@@ -6,7 +6,7 @@ import Payout from './components/Payout.jsx'
 import RealTimeTracking from './components/RealTimeTracking.jsx'
 import AutomatedPayouts from './components/AutomatedPayouts.jsx'
 import CodManagement from './components/CodManagement.jsx'
-import DeliveryAgentManagement from './components/DeliveryAgentManagement.jsx'
+import DeliveryAgentManagement from "./components/DeliveryAgentManagement";
 import RealTimeDeliveryAnalytics from './components/RealTimeDeliveryAnalytics.jsx'
 import Testimonials from './components/Testimonials.jsx'
 import Contact from './components/Contact.jsx'

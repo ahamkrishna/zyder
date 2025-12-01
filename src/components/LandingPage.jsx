@@ -18,6 +18,7 @@ function LandingPage() {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: index * 0.2, duration: 0.8, ease: "easeOut" }}
                     className='uppercase text-[7vw] leading-[7vw] tracking-tighter font-sans font-bold'
+                    style={{ color: 'white', fontSize: '7vw' }}
                   >
                     {item}
                   </motion.h1>

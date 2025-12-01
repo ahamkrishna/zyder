@@ -10,6 +10,9 @@ function useTilt(active) {
     }
 
     const el = ref.current;
+    if (!el) {
+      return;
+    }
 
     const handleMove = (e) => {
       const { clientX, clientY, currentTarget } = e;
@@ -29,8 +32,10 @@ function useTilt(active) {
     el.addEventListener('mouseleave', handleLeave);
 
     return () => {
-      el.removeEventListener('mousemove', handleMove);
-      el.removeEventListener('mouseleave', handleLeave);
+      if (el) {
+        el.removeEventListener('mousemove', handleMove);
+        el.removeEventListener('mouseleave',handleLeave);
+      }
     };
   }, [active]);
 
